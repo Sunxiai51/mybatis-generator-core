@@ -26,7 +26,7 @@ import org.mybatis.generator.api.dom.java.FullyQualifiedJavaType;
  * @author Jeff Butler
  */
 public class OutputUtilities {
-    
+
     /** The Constant lineSeparator. */
     private static final String lineSeparator;
 
@@ -71,7 +71,7 @@ public class OutputUtilities {
      */
     public static void xmlIndent(StringBuilder sb, int indentLevel) {
         for (int i = 0; i < indentLevel; i++) {
-            sb.append("  "); //$NON-NLS-1$
+            sb.append("    "); //$NON-NLS-1$
         }
     }
 
@@ -92,8 +92,7 @@ public class OutputUtilities {
      *            the imported types
      * @return the sets the
      */
-    public static Set<String> calculateImports(
-            Set<FullyQualifiedJavaType> importedTypes) {
+    public static Set<String> calculateImports(Set<FullyQualifiedJavaType> importedTypes) {
         StringBuilder sb = new StringBuilder();
         Set<String> importStrings = new TreeSet<String>();
         for (FullyQualifiedJavaType fqjt : importedTypes) {
