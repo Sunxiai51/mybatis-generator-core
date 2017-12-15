@@ -36,8 +36,8 @@ import org.mybatis.generator.config.MergeConstants;
 import org.mybatis.generator.exception.InvalidConfigurationException;
 import org.mybatis.generator.exception.ShellException;
 import org.mybatis.generator.internal.DefaultShellCallback;
-import org.mybatis.generator.internal.ObjectFactory;
 import org.mybatis.generator.internal.NullProgressCallback;
+import org.mybatis.generator.internal.ObjectFactory;
 import org.mybatis.generator.internal.XmlFileMergerJaxp;
 
 /**
@@ -56,22 +56,22 @@ import org.mybatis.generator.internal.XmlFileMergerJaxp;
 public class MyBatisGenerator {
 
     /** The configuration. */
-    private Configuration configuration;
+    private Configuration           configuration;
 
     /** The shell callback. */
-    private ShellCallback shellCallback;
+    private ShellCallback           shellCallback;
 
     /** The generated java files. */
     private List<GeneratedJavaFile> generatedJavaFiles;
 
     /** The generated xml files. */
-    private List<GeneratedXmlFile> generatedXmlFiles;
+    private List<GeneratedXmlFile>  generatedXmlFiles;
 
     /** The warnings. */
-    private List<String> warnings;
+    private List<String>            warnings;
 
     /** The projects. */
-    private Set<String> projects;
+    private Set<String>             projects;
 
     /**
      * Constructs a MyBatisGenerator object.
@@ -92,8 +92,7 @@ public class MyBatisGenerator {
      * @throws InvalidConfigurationException
      *             if the specified configuration is invalid
      */
-    public MyBatisGenerator(Configuration configuration, ShellCallback shellCallback,
-            List<String> warnings) throws InvalidConfigurationException {
+    public MyBatisGenerator(Configuration configuration, ShellCallback shellCallback, List<String> warnings) throws InvalidConfigurationException {
         super();
         if (configuration == null) {
             throw new IllegalArgumentException(getString("RuntimeError.2")); //$NON-NLS-1$
@@ -134,8 +133,7 @@ public class MyBatisGenerator {
      * @throws InterruptedException
      *             if the method is canceled through the ProgressCallback
      */
-    public void generate(ProgressCallback callback) throws SQLException,
-            IOException, InterruptedException {
+    public void generate(ProgressCallback callback) throws SQLException, IOException, InterruptedException {
         generate(callback, null, null, true);
     }
 
@@ -156,8 +154,7 @@ public class MyBatisGenerator {
      * @throws InterruptedException
      *             if the method is canceled through the ProgressCallback
      */
-    public void generate(ProgressCallback callback, Set<String> contextIds)
-            throws SQLException, IOException, InterruptedException {
+    public void generate(ProgressCallback callback, Set<String> contextIds) throws SQLException, IOException, InterruptedException {
         generate(callback, contextIds, null, true);
     }
 
@@ -183,9 +180,7 @@ public class MyBatisGenerator {
      * @throws InterruptedException
      *             if the method is canceled through the ProgressCallback
      */
-    public void generate(ProgressCallback callback, Set<String> contextIds,
-            Set<String> fullyQualifiedTableNames) throws SQLException,
-            IOException, InterruptedException {
+    public void generate(ProgressCallback callback, Set<String> contextIds, Set<String> fullyQualifiedTableNames) throws SQLException, IOException, InterruptedException {
         generate(callback, contextIds, fullyQualifiedTableNames, true);
     }
 
@@ -214,9 +209,7 @@ public class MyBatisGenerator {
      * @throws InterruptedException
      *             if the method is canceled through the ProgressCallback
      */
-    public void generate(ProgressCallback callback, Set<String> contextIds,
-            Set<String> fullyQualifiedTableNames, boolean writeFiles) throws SQLException,
-            IOException, InterruptedException {
+    public void generate(ProgressCallback callback, Set<String> contextIds, Set<String> fullyQualifiedTableNames, boolean writeFiles) throws SQLException, IOException, InterruptedException {
 
         if (callback == null) {
             callback = new NullProgressCallback();
@@ -228,12 +221,12 @@ public class MyBatisGenerator {
         RootClassInfo.reset();
 
         // calculate the contexts to run
-        List<Context> contextsToRun;
-        if (contextIds == null || contextIds.size() == 0) {
+        List<Context> contextsToRun; // 需要生成的context列表
+        if (contextIds == null || contextIds.size() == 0) { // 如果未指定任何contextId，生成配置文件中的所有context配置
             contextsToRun = configuration.getContexts();
         } else {
             contextsToRun = new ArrayList<Context>();
-            for (Context context : configuration.getContexts()) {
+            for (Context context : configuration.getContexts()) { // 生成配置文件中指定的context配置
                 if (contextIds.contains(context.getId())) {
                     contextsToRun.add(context);
                 }
@@ -243,7 +236,7 @@ public class MyBatisGenerator {
         // setup custom classloader if required
         if (configuration.getClassPathEntries().size() > 0) {
             ClassLoader classLoader = getCustomClassloader(configuration.getClassPathEntries());
-            ObjectFactory.addExternalClassLoader(classLoader);
+            ObjectFactory.addExternalClassLoader(classLoader); // 将配置了的ClassPath加入到ObjectFactory的externalClassLoaders
         }
 
         // now run the introspections...
@@ -251,11 +244,10 @@ public class MyBatisGenerator {
         for (Context context : contextsToRun) {
             totalSteps += context.getIntrospectionSteps();
         }
-        callback.introspectionStarted(totalSteps);
+        callback.introspectionStarted(totalSteps); // 回调方法以记录introspection阶段的开始，以及任务消息最大数
 
         for (Context context : contextsToRun) {
-            context.introspectTables(callback, warnings,
-                    fullyQualifiedTableNames);
+            context.introspectTables(callback, warnings, fullyQualifiedTableNames); // 每个context轮流反省
         }
 
         // now run the generates
@@ -266,14 +258,12 @@ public class MyBatisGenerator {
         callback.generationStarted(totalSteps);
 
         for (Context context : contextsToRun) {
-            context.generateFiles(callback, generatedJavaFiles,
-                    generatedXmlFiles, warnings);
+            context.generateFiles(callback, generatedJavaFiles, generatedXmlFiles, warnings);
         }
 
         // now save the files
         if (writeFiles) {
-            callback.saveStarted(generatedXmlFiles.size()
-                + generatedJavaFiles.size());
+            callback.saveStarted(generatedXmlFiles.size() + generatedJavaFiles.size());
 
             for (GeneratedXmlFile gxf : generatedXmlFiles) {
                 projects.add(gxf.getTargetProject());
@@ -293,81 +283,66 @@ public class MyBatisGenerator {
         callback.done();
     }
 
-    private void writeGeneratedJavaFile(GeneratedJavaFile gjf, ProgressCallback callback)
-            throws InterruptedException, IOException {
+    private void writeGeneratedJavaFile(GeneratedJavaFile gjf, ProgressCallback callback) throws InterruptedException, IOException {
         File targetFile;
         String source;
         try {
-            File directory = shellCallback.getDirectory(gjf
-                    .getTargetProject(), gjf.getTargetPackage());
+            File directory = shellCallback.getDirectory(gjf.getTargetProject(), gjf.getTargetPackage());
             targetFile = new File(directory, gjf.getFileName());
             if (targetFile.exists()) {
                 if (shellCallback.isMergeSupported()) {
-                    source = shellCallback.mergeJavaFile(gjf
-                            .getFormattedContent(), targetFile
-                            .getAbsolutePath(),
-                            MergeConstants.OLD_ELEMENT_TAGS,
-                            gjf.getFileEncoding());
+                    source = shellCallback.mergeJavaFile(gjf.getFormattedContent(), targetFile.getAbsolutePath(), MergeConstants.OLD_ELEMENT_TAGS, gjf.getFileEncoding());
                 } else if (shellCallback.isOverwriteEnabled()) {
                     source = gjf.getFormattedContent();
                     warnings.add(getString("Warning.11", //$NON-NLS-1$
-                            targetFile.getAbsolutePath()));
+                        targetFile.getAbsolutePath()));
                 } else {
                     source = gjf.getFormattedContent();
-                    targetFile = getUniqueFileName(directory, gjf
-                            .getFileName());
-                    warnings.add(getString(
-                            "Warning.2", targetFile.getAbsolutePath())); //$NON-NLS-1$
+                    targetFile = getUniqueFileName(directory, gjf.getFileName());
+                    warnings.add(getString("Warning.2", targetFile.getAbsolutePath())); //$NON-NLS-1$
                 }
             } else {
                 source = gjf.getFormattedContent();
             }
 
             callback.checkCancel();
-            callback.startTask(getString(
-                    "Progress.15", targetFile.getName())); //$NON-NLS-1$
+            callback.startTask(getString("Progress.15", targetFile.getName())); //$NON-NLS-1$
             writeFile(targetFile, source, gjf.getFileEncoding());
         } catch (ShellException e) {
             warnings.add(e.getMessage());
         }
     }
 
-    private void writeGeneratedXmlFile(GeneratedXmlFile gxf, ProgressCallback callback)
-            throws InterruptedException, IOException {
+    private void writeGeneratedXmlFile(GeneratedXmlFile gxf, ProgressCallback callback) throws InterruptedException, IOException {
         File targetFile;
         String source;
         try {
-            File directory = shellCallback.getDirectory(gxf
-                    .getTargetProject(), gxf.getTargetPackage());
+            File directory = shellCallback.getDirectory(gxf.getTargetProject(), gxf.getTargetPackage());
             targetFile = new File(directory, gxf.getFileName());
             if (targetFile.exists()) {
                 if (gxf.isMergeable()) {
-                    source = XmlFileMergerJaxp.getMergedSource(gxf,
-                            targetFile);
+                    source = XmlFileMergerJaxp.getMergedSource(gxf, targetFile);
                 } else if (shellCallback.isOverwriteEnabled()) {
                     source = gxf.getFormattedContent();
                     warnings.add(getString("Warning.11", //$NON-NLS-1$
-                            targetFile.getAbsolutePath()));
+                        targetFile.getAbsolutePath()));
                 } else {
                     source = gxf.getFormattedContent();
-                    targetFile = getUniqueFileName(directory, gxf
-                            .getFileName());
-                    warnings.add(getString(
-                            "Warning.2", targetFile.getAbsolutePath())); //$NON-NLS-1$
+                    targetFile = getUniqueFileName(directory, gxf.getFileName());
+                    warnings.add(getString("Warning.2", targetFile.getAbsolutePath())); //$NON-NLS-1$
                 }
             } else {
                 source = gxf.getFormattedContent();
             }
 
             callback.checkCancel();
-            callback.startTask(getString(
-                    "Progress.15", targetFile.getName())); //$NON-NLS-1$
+            callback.startTask(getString("Progress.15", targetFile.getName())); //$NON-NLS-1$
             writeFile(targetFile, source, "UTF-8"); //$NON-NLS-1$
         } catch (ShellException e) {
             warnings.add(e.getMessage());
         }
     }
-    
+
     /**
      * Writes, or overwrites, the contents of the specified file.
      *
@@ -388,7 +363,7 @@ public class MyBatisGenerator {
         } else {
             osw = new OutputStreamWriter(fos, fileEncoding);
         }
-        
+
         BufferedWriter bw = new BufferedWriter(osw);
         bw.write(content);
         bw.close();
@@ -422,8 +397,7 @@ public class MyBatisGenerator {
         }
 
         if (answer == null) {
-            throw new RuntimeException(getString(
-                    "RuntimeError.3", directory.getAbsolutePath())); //$NON-NLS-1$
+            throw new RuntimeException(getString("RuntimeError.3", directory.getAbsolutePath())); //$NON-NLS-1$
         }
 
         return answer;

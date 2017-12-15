@@ -58,7 +58,7 @@ public class ConfigurationParser {
 
     private List<String> warnings;
     private List<String> parseErrors;
-    private Properties extraProperties;
+    private Properties   extraProperties;
 
     public ConfigurationParser(List<String> warnings) {
         this(null, warnings);
@@ -97,47 +97,42 @@ public class ConfigurationParser {
         parseErrors = new ArrayList<String>();
     }
 
-    public Configuration parseConfiguration(File inputFile) throws IOException,
-            XMLParserException {
+    public Configuration parseConfiguration(File inputFile) throws IOException, XMLParserException {
 
         FileReader fr = new FileReader(inputFile);
 
         return parseConfiguration(fr);
     }
 
-    public Configuration parseConfiguration(Reader reader) throws IOException,
-            XMLParserException {
+    public Configuration parseConfiguration(Reader reader) throws IOException, XMLParserException {
 
         InputSource is = new InputSource(reader);
 
         return parseConfiguration(is);
     }
 
-    public Configuration parseConfiguration(InputStream inputStream)
-            throws IOException, XMLParserException {
+    public Configuration parseConfiguration(InputStream inputStream) throws IOException, XMLParserException {
 
         InputSource is = new InputSource(inputStream);
 
         return parseConfiguration(is);
     }
 
-    private Configuration parseConfiguration(InputSource inputSource)
-            throws IOException, XMLParserException {
+    private Configuration parseConfiguration(InputSource inputSource) throws IOException, XMLParserException {
         parseErrors.clear();
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setValidating(true);
 
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
-            builder.setEntityResolver(new ParserEntityResolver());
+            builder.setEntityResolver(new ParserEntityResolver()); // 入参为实现了org.xml.sax.EntityResolver接口的ParserEntityResolver，根据不同publicId配置不同的DTD
 
-            ParserErrorHandler handler = new ParserErrorHandler(warnings,
-                    parseErrors);
+            ParserErrorHandler handler = new ParserErrorHandler(warnings, parseErrors);
             builder.setErrorHandler(handler);
 
             Document document = null;
             try {
-                document = builder.parse(inputSource);
+                document = builder.parse(inputSource); // 将配置xml文件转化为Document对象
             } catch (SAXParseException e) {
                 throw new XMLParserException(parseErrors);
             } catch (SAXException e) {
@@ -152,16 +147,12 @@ public class ConfigurationParser {
                 throw new XMLParserException(parseErrors);
             }
 
-            Configuration config;
-            Element rootNode = document.getDocumentElement();
-            DocumentType docType = document.getDoctype();
-            if (rootNode.getNodeType() == Node.ELEMENT_NODE
-                    && docType.getPublicId().equals(
-                            XmlConstants.IBATOR_CONFIG_PUBLIC_ID)) {
+            Configuration config; // 要返回的config
+            Element rootNode = document.getDocumentElement(); // 获取根节点，以将document转化为config
+            DocumentType docType = document.getDoctype(); // 获取文档类型，以根据不同的publicId选择对应的转化方式
+            if (rootNode.getNodeType() == Node.ELEMENT_NODE && docType.getPublicId().equals(XmlConstants.IBATOR_CONFIG_PUBLIC_ID)) {
                 config = parseIbatorConfiguration(rootNode);
-            } else if (rootNode.getNodeType() == Node.ELEMENT_NODE
-                    && docType.getPublicId().equals(
-                            XmlConstants.MYBATIS_GENERATOR_CONFIG_PUBLIC_ID)) {
+            } else if (rootNode.getNodeType() == Node.ELEMENT_NODE && docType.getPublicId().equals(XmlConstants.MYBATIS_GENERATOR_CONFIG_PUBLIC_ID)) {
                 config = parseMyBatisGeneratorConfiguration(rootNode);
             } else {
                 throw new XMLParserException(getString("RuntimeError.5")); //$NON-NLS-1$
@@ -178,17 +169,13 @@ public class ConfigurationParser {
         }
     }
 
-    private Configuration parseIbatorConfiguration(Element rootNode)
-            throws XMLParserException {
-        IbatorConfigurationParser parser = new IbatorConfigurationParser(
-        		extraProperties);
+    private Configuration parseIbatorConfiguration(Element rootNode) throws XMLParserException {
+        IbatorConfigurationParser parser = new IbatorConfigurationParser(extraProperties);
         return parser.parseIbatorConfiguration(rootNode);
     }
 
-    private Configuration parseMyBatisGeneratorConfiguration(Element rootNode)
-            throws XMLParserException {
-        MyBatisGeneratorConfigurationParser parser = new MyBatisGeneratorConfigurationParser(
-        		extraProperties);
+    private Configuration parseMyBatisGeneratorConfiguration(Element rootNode) throws XMLParserException {
+        MyBatisGeneratorConfigurationParser parser = new MyBatisGeneratorConfigurationParser(extraProperties);
         return parser.parseConfiguration(rootNode);
     }
 }

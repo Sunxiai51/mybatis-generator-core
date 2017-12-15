@@ -41,14 +41,14 @@ import org.mybatis.generator.logging.LogFactory;
  * @author Jeff Butler
  */
 public class ShellRunner {
-    private static final String CONFIG_FILE = "-configfile"; //$NON-NLS-1$
-    private static final String OVERWRITE = "-overwrite"; //$NON-NLS-1$
-    private static final String CONTEXT_IDS = "-contextids"; //$NON-NLS-1$
-    private static final String TABLES = "-tables"; //$NON-NLS-1$
-    private static final String VERBOSE = "-verbose"; //$NON-NLS-1$
+    private static final String CONFIG_FILE        = "-configfile";       //$NON-NLS-1$
+    private static final String OVERWRITE          = "-overwrite";        //$NON-NLS-1$
+    private static final String CONTEXT_IDS        = "-contextids";       //$NON-NLS-1$
+    private static final String TABLES             = "-tables";           //$NON-NLS-1$
+    private static final String VERBOSE            = "-verbose";          //$NON-NLS-1$
     private static final String FORCE_JAVA_LOGGING = "-forceJavaLogging"; //$NON-NLS-1$
-    private static final String HELP_1 = "-?"; //$NON-NLS-1$
-    private static final String HELP_2 = "-h"; //$NON-NLS-1$
+    private static final String HELP_1             = "-?";                //$NON-NLS-1$
+    private static final String HELP_2             = "-h";                //$NON-NLS-1$
 
     public static void main(String[] args) {
         if (args.length == 0) {
@@ -57,13 +57,15 @@ public class ShellRunner {
             return; // only to satisfy compiler, never returns
         }
 
-        Map<String, String> arguments = parseCommandLine(args);
+        Map<String, String> arguments = parseCommandLine(args); // 命令行输入参数转换
 
         if (arguments.containsKey(HELP_1)) {
             usage();
             System.exit(0);
             return; // only to satisfy compiler, never returns
         }
+
+        // 参数正确性校验开始
 
         if (!arguments.containsKey(CONFIG_FILE)) {
             writeLine(getString("RuntimeError.0")); //$NON-NLS-1$
@@ -79,9 +81,11 @@ public class ShellRunner {
             return;
         }
 
-        Set<String> fullyqualifiedTables = new HashSet<String>();
+        // 参数正确性校验结束
+
+        Set<String> fullyqualifiedTables = new HashSet<String>(); // 从命令行传来的表名，指定本次运行需要创建的table
         if (arguments.containsKey(TABLES)) {
-            StringTokenizer st = new StringTokenizer(arguments.get(TABLES), ","); //$NON-NLS-1$
+            StringTokenizer st = new StringTokenizer(arguments.get(TABLES), ","); //$NON-NLS-1$ 以逗号分隔
             while (st.hasMoreTokens()) {
                 String s = st.nextToken().trim();
                 if (s.length() > 0) {
@@ -90,10 +94,9 @@ public class ShellRunner {
             }
         }
 
-        Set<String> contexts = new HashSet<String>();
+        Set<String> contexts = new HashSet<String>(); // 从命令行传来的context_id，指定本次运行需要创建的context
         if (arguments.containsKey(CONTEXT_IDS)) {
-            StringTokenizer st = new StringTokenizer(
-                    arguments.get(CONTEXT_IDS), ","); //$NON-NLS-1$
+            StringTokenizer st = new StringTokenizer(arguments.get(CONTEXT_IDS), ","); //$NON-NLS-1$ 以逗号分隔
             while (st.hasMoreTokens()) {
                 String s = st.nextToken().trim();
                 if (s.length() > 0) {
@@ -103,18 +106,16 @@ public class ShellRunner {
         }
 
         try {
-            ConfigurationParser cp = new ConfigurationParser(warnings);
-            Configuration config = cp.parseConfiguration(configurationFile);
+            ConfigurationParser cp = new ConfigurationParser(warnings); // 这里入参为经过初始化的空的ArrayList<String>
+            Configuration config = cp.parseConfiguration(configurationFile); // 这里只传入配置文件的配置 TODO 没有传入extraProperties，会在哪传？ 
 
-            DefaultShellCallback shellCallback = new DefaultShellCallback(
-                    arguments.containsKey(OVERWRITE));
+            DefaultShellCallback shellCallback = new DefaultShellCallback(arguments.containsKey(OVERWRITE)); // 传入DefaultShellCallback回调
 
-            MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config, shellCallback, warnings);
+            MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config, shellCallback, warnings); // 初始化MyBatisGenerator
 
-            ProgressCallback progressCallback = arguments.containsKey(VERBOSE) ? new VerboseProgressCallback()
-                    : null;
+            ProgressCallback progressCallback = arguments.containsKey(VERBOSE) ? new VerboseProgressCallback() : null; // 传入ProgressCallback回调
 
-            myBatisGenerator.generate(progressCallback, contexts, fullyqualifiedTables);
+            myBatisGenerator.generate(progressCallback, contexts, fullyqualifiedTables); // 开始创建
 
         } catch (XMLParserException e) {
             writeLine(getString("Progress.3")); //$NON-NLS-1$
@@ -152,6 +153,9 @@ public class ShellRunner {
         }
     }
 
+    /**
+     * 输出帮助文档
+     */
     private static void usage() {
         String lines = getString("Usage.Lines"); //$NON-NLS-1$
         int iLines = Integer.parseInt(lines);
@@ -178,8 +182,7 @@ public class ShellRunner {
                 if ((i + 1) < args.length) {
                     arguments.put(CONFIG_FILE, args[i + 1]);
                 } else {
-                    errors.add(getString(
-                            "RuntimeError.19", CONFIG_FILE)); //$NON-NLS-1$
+                    errors.add(getString("RuntimeError.19", CONFIG_FILE)); //$NON-NLS-1$
                 }
                 i++;
             } else if (OVERWRITE.equalsIgnoreCase(args[i])) {
@@ -198,8 +201,7 @@ public class ShellRunner {
                 if ((i + 1) < args.length) {
                     arguments.put(CONTEXT_IDS, args[i + 1]);
                 } else {
-                    errors.add(getString(
-                            "RuntimeError.19", CONTEXT_IDS)); //$NON-NLS-1$
+                    errors.add(getString("RuntimeError.19", CONTEXT_IDS)); //$NON-NLS-1$
                 }
                 i++;
             } else if (TABLES.equalsIgnoreCase(args[i])) {
