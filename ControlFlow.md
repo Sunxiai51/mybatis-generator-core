@@ -8,14 +8,14 @@ version: MyBatis Generator Core 1.3.5
 
 ## ShellRunner - 程序入口
 
-该类有一个main方法，能够通过命令行调用MBG来生成文件。
+[ShellRunner](https://github.com/Sunxiai51/mybatis-generator-core/blob/master/src/main/java/org/mybatis/generator/api/ShellRunner.java)有一个main方法，能够通过命令行调用MBG来生成文件。
 1. 参数校验
 2. 解析传入参数与配置文件，生成Configuration *(调用了`ConfigurationParser`)*
 3. 初始化`MyBatisGenerator`，调用其generate方法创建需要的文件
 
 ### ConfigurationParser - 配置解析器
 
-该类的parseConfiguration方法可以根据参数和配置文件生成Configuration对象，该对象用于后续的创建过程。
+[ConfigurationParser](https://github.com/Sunxiai51/mybatis-generator-core/blob/master/src/main/java/org/mybatis/generator/config/xml/ConfigurationParser.java)的parseConfiguration方法可以根据参数和配置文件生成Configuration对象，该对象用于后续的创建过程。
 1. 通过DocumentBuilder将配置文件解析为Document
 2. 根据DocumentType调用不同的方法，返回Configuration对象：
 	- 如果是IBATOR_CONFIG，调用parseIbatorConfiguration *(调用了IbatorConfigurationParser)*
@@ -23,7 +23,7 @@ version: MyBatis Generator Core 1.3.5
 
 ### MyBatisGenerator - MBG核心类
 
-该类的generate方法是MBG核心功能。
+[MyBatisGenerator](https://github.com/Sunxiai51/mybatis-generator-core/blob/master/src/main/java/org/mybatis/generator/api/MyBatisGenerator.java)的generate方法是MBG核心功能。
 1. 初始化工作，清空一些辅助集合，根据Configuration获取需要生成的`Context`，将所配置的classPathEntry加入externalClassLoader等等
 2. database introspection *(调用了每个context的introspectTables方法)*
 3. code generation *(调用了每个context的generateFiles方法)*
@@ -31,7 +31,7 @@ version: MyBatis Generator Core 1.3.5
 
 #### Context - 上下文
 
-是MBG里的配置单元，通常一个context对应一个数据源。
+[Context](https://github.com/Sunxiai51/mybatis-generator-core/blob/master/src/main/java/org/mybatis/generator/config/Context.java)是MBG里的配置单元，通常一个context对应一个数据源。
 
 该类源码中有如下注释：
 ```java
